@@ -127,12 +127,12 @@ class MyString:
         
         for palavra in self.__stopwords:
             textoOut=textoOut.replace(palavra,"")
-        
-        
+       
     def removeStopWord(self):
         for i,elemento in enumerate(self.palavras):
             if (elemento in stopwords): del self.palavras[i]
-    
-    
+                
+        # filter(lambda x: x not in stopwords, self.palavras)
+   
     def limpeza(self):
          self.palavras = [x for x in self.palavras if x!='']
