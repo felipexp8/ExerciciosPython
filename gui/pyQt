@@ -1,0 +1,114 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Nov  7 11:43:43 2019
+
+@author: felipe
+"""
+
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QMessageBox, QTableWidget, \
+ QAbstractItemView, QSizePolicy, QTableWidgetItem
+
+import numpy as np
+
+import pandas as pd
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+
+
+dados = pd.read_csv("carros.csv")
+
+class MyMplCanvas(FigureCanvas):
+    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
+
+    def __init__(self, parent=None, posx = 1, posy =1, width=5, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(111)
+
+        self.compute_initial_figure()
+
+        FigureCanvas.__init__(self, fig)
+        self.setParent(parent)
+
+        FigureCanvas.setSizePolicy(self,
+                                   QSizePolicy.Expanding,
+                                   QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self)
+        
+
+    def compute_initial_figure(self):
+        pass
+
+
+class MyStaticMplCanvas(MyMplCanvas):
+    """Simple canvas with a sine plot."""
+
+    def compute_initial_figure(self):
+        t = np.arange(0.0, 3.0, 0.01)
+        s = np.sin(2*3*t)
+        self.axes.plot(t, s)
+        
+        
+app = QApplication([])
+app.setApplicationName("Aplicativo do Felipe")
+
+window = QWidget()
+window.resize(900,1000)
+
+
+
+
+def showMSg():
+    msgBox = QMessageBox()
+    coi =  tabela.selectedItems()
+    print coi[0].text()
+    msgBox.setText("opa ")
+    msgBox.exec_()
+
+def processa():
+    grafico.axes.cla()
+    coi = tabela.selectedItems()[0].text()
+    print coi
+    grafico.axes.plot( dados[coi], 'b')
+    grafico.draw()
+ 
+
+
+grafico = MyStaticMplCanvas(window)
+
+grafico.move(330,70)
+
+
+tabela = QTableWidget(len(list(dados)),1,window)
+
+for x, y in enumerate(list(dados)):
+    tabela.setItem(x,0, QTableWidgetItem(y))
+ 
+
+# tabela.setItem(0,0, QTableWidgetItem("coi"))
+
+tabela.move(10,70)
+tabela.resize(300,500)
+
+
+tabela.itemSelectionChanged.connect(processa)
+
+tabela.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+etiqueta = QLabel("Felipe", window)
+
+etiqueta.move(5,5)
+
+botao = QPushButton("nome")
+
+botao.clicked.connect(showMSg)
+
+botao.move(10,30)
+
+botao.setParent(window)
+
+window.show()
+
+
+app.exec_()

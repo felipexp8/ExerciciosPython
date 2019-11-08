@@ -1,0 +1,132 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Oct 31 10:49:10 2019
+
+@author: felipe
+"""
+
+import Tkinter as tk
+import ttk 
+import tkMessageBox
+import pylab as plot
+import pandas as pd
+import numpy as np
+
+from matplotlib.backends.backend_tkagg import (
+    FigureCanvasTkAgg, NavigationToolbar2Tk)
+
+
+from ttk import *
+
+from matplotlib.figure import Figure
+
+figura = Figure(figsize=(5, 4), dpi=100)
+
+subplot = figura.add_subplot(111)
+
+subplot.grid()
+subplot.plot(range(10))
+
+
+
+print "vai"
+
+root = tk.Tk() # Toplevel() # para jupyter ou ik.Tk() para python
+
+root.title("Aplicativo do Felipe")
+
+root.geometry("800x600")
+
+botao = Button(root,text="vai, um botao qualquer")
+
+label = Label(root, text="um plot qualquer:")
+
+campo = tk.Text(root, heigh=2, width=20, padx=5,pady=5)
+
+
+pdf = tk.IntVar()
+
+marcaPDF = tk.Checkbutton(root, text="PDF", variable=pdf)
+
+cdf = tk.IntVar()
+
+marcaCDF = tk.Checkbutton(root, text="CDF", variable=cdf)
+
+
+dados = pd.read_csv("Auto.csv", na_values='?')
+
+dados.horsepower = dados.horsepower.replace(np.nan, dados.horsepower.mean())
+
+cabecalho = list(dados)
+
+listagem = tk.Listbox(root)
+
+for i, item in enumerate(cabecalho): listagem.insert(i,item)
+
+
+menu = tk.Menu(root)
+
+menu.add_command(label="sobre", command= lambda: tkMessageBox.showinfo("Felipe", "que menu feio"))
+
+
+
+root.config(menu=menu)
+
+# lugar para posicionar os elementos
+
+label.place(x=400,y=100)
+campo.place(x=10,y=10)
+botao.place(x=10,y=100)
+listagem.place(x=200, y=10)
+marcaPDF.place(x=400,y=50)
+marcaCDF.place(x=440,y=50)
+
+# combina o frontend do matplotlib no tkinter
+
+canvas = FigureCanvasTkAgg(figura, master=root)
+
+canvas.draw() # se tiver um plotar, já plota para o espaço ficar preenchido
+
+canvas.get_tk_widget().place(x=10,y=150)
+
+
+toolbar = NavigationToolbar2Tk(canvas, root)
+toolbar.update()
+
+
+def fazAlgo(): #evento ao clicar num botao qualquer
+     tkMessageBox.showinfo("sei lá", "uma coisa qualquer")
+     subplot.plot([2,3,4,4,4,3,3,4,5,5,5,4]) # testa se o plota funciona
+     canvas.draw()
+     
+
+def montaHist(origem): # monta o histograma ao selecionar um item na listbox
+    
+    global pdf, cdf
+    atual = listagem.selection_get()
+    if atual=='name':
+         tkMessageBox.showerror("Erro doido", "Formato não numérico ou muitas \
+                                células nulas, nao posso plotar")
+         return 
+    try:
+        subplot.clear()
+        subplot.hist(dados[atual].to_numpy(), bins=10, density=(pdf.get() or cdf.get()), cumulative=cdf.get())
+        subplot.grid()
+        canvas.draw()
+        label['text'] = "média: {0:.2f}".format(dados[atual].mean())
+    except:
+        tkMessageBox.showerror("Erro doido", "Formato não numérico ou muitas células nulas")
+    canvas.draw()
+
+listagem.bind('<<ListboxSelect>>', montaHist )
+
+botao['command'] = fazAlgo
+
+#muda o tema para um menos feio:
+root.style = Style()
+
+root.style.theme_use("clam")
+
+
+root.mainloop()
